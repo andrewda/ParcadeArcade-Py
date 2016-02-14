@@ -5,9 +5,9 @@ Created on Fri Feb 12 23:26:00 2016
 @author: joe_b
 """
 
+import grovepi
 import requests
 import json
-import grovepi
 import lcd
 
 #from enum import Enum
@@ -155,9 +155,9 @@ def respond():
     value = request.args["value"]
     ioType = request.args["ioType"]
     
-    print "port: " + port
-    print "value: " + value
-    print "ioType: " + ioType
+    print( 'port: ' + port )
+    print( 'value: ' + value )
+    print( 'ioType: ' + ioType )
     
     grovepi.digitalWrite( int(port), int(value) )
     
