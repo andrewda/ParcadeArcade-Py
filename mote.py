@@ -32,9 +32,11 @@ class Mote:
     id = 0
     name = "Simon"
     description = "Simon Game in Main Hall"
+    ip = "127.0.0.1"
     capabilities = []
-    def __init__(self, name, description,capabilities=[]):
+    def __init__(self, name, description, ip, capabilities=[]):
         self.name = name
+        self.ip = ip
         self.description = description
     
     def addCapability( self, capability ):
@@ -46,7 +48,7 @@ class Mote:
 #            sort_keys=True, indent=4)
     
     def toDict(self):
-        x = { "name": self.name, "description" : self.description }
+        x = { "name": self.name, "description" : self.description, "ip" : self.ip }
         #clist = [ ob.toDict() for ob in myMote.capabilities ]
         #x["capabilities"] = clist
         return x

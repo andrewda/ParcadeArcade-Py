@@ -10,17 +10,24 @@ import requests
 import json
 import lcd
 import mote
+import subprocess
 
-#from enum import Enum
-#
-#class IoTypes(Enum):
-#    DigitalIn = 1
-#    DigitalOut = 2
-#    AnalogIn = 3
-#    AnalogOut = 4
-#    I2C = 5
-#    RPISER = 6
-#    SERIAL = 7
+import socket
+import fcntl
+import struct
+
+def get_ip_address(ifname):
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    return socket.inet_ntoa(fcntl.ioctl(
+        s.fileno(),
+        0x8915,  # SIOCGIFADDR
+        struct.pack('256s', ifname[:15])
+    )[20:24])
+
+print get_ip_address('lo')
+print get_ip_address('eth0')
+
+ip = get_ip_address('eth0') + ":5000"
 
 greenLed = 2
 grovepi.pinMode( greenLed, "OUTPUT" )
@@ -28,7 +35,8 @@ grovepi.digitalWrite( greenLed, 1 )
 
 lcd.setRGB( 128, 0, 0 ) # red
 
-myMote = mote.Mote( 0, "Simon", "My new Simon" )
+myMote = mote.Mote( "Simon", "My new Simon", ip )
+
 #myMote.addCapability( mote.Capability( "Button 1", 2, 1 ) )
 #myMote.addCapability( mote.Capability( "Button 2", 3, 1 ) )
 myMote.addCapability( mote.Capability( "Green LED", 2, 2 ) )
@@ -64,12 +72,6 @@ def receive_json():
 
 @app.route("/set", methods=['POST'])
 def respond():
-#    content = request.get_json()
-#    print('foo: '+ str(content))
-#    print('fum ' + str(request))
-#    print('fie ' + str(request.data))
-#    print('fiy ' + str(request.args))
-#    print('bye ' + str(request.values))
 
     port = request.args["port"]
     value = request.args["value"]
@@ -94,3 +96,4 @@ def respond():
 
 
 app.run(host = '0.0.0.0')
+
