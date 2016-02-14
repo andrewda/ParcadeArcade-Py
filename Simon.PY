@@ -16,50 +16,74 @@ grovepi.pinMode(blueSens,"INPUT")
 grovepi.pinMode(red,"OUTPUT")
 grovepi.pinMode(blue,"OUTPUT")
 comTurn = True
-seleccion = 0
-gameLength = 3
-seleccionLog = range(0,gameLength)
-try:
-	for item in range(0,3):
-		if random.randint(1, 2) == 1:
-			grovepi.digitalWrite(red,1)
-			grovepi.digitalWrite(blue,0)
-			seleccion = 8 #LightChoice.red
-			print "red picked"
-		else: 
-			grovepi.digitalWrite(blue,1)
-			grovepi.digitalWrite(red,0)
-			seleccion = 7#LightChoice.blue
-			print "blue picked"
-		seleccionLog[item] = seleccion
-		time.sleep(1)
-		grovepi.digitalWrite(blue,0)
-		grovepi.digitalWrite(red,0)
-		time.sleep(1)
-	waiting = True
-	lost = False
-	for item in range(0, 3):
-		initTime = time.time()
-		while(waiting and not lost):
-			print lost
-			if (grovepi.ultrasonicRead(redSens)) < 20:
-				if (seleccionLog[item] == 8):
-					print "Winner!"
-					waiting = False
-				else:
-					print "Loser!"
-					waiting = False
-					lost = True
-			if (grovepi.digitalRead(blueSens)) ==1:
-				if (seleccionLog[item] == 7):
-					print "Winner!"
-					waiting = False
-				else:
-					print "Loser!"
-					waiting = False
-					lost = True
-		waiting = True
-except TypeError:
-	print(TypeError)
-except IOError:
-		print(IOError)
+selection = 0
+gameLength = 10
+selectionLog = range(0,gameLength)
+readyToPlay = False
+while True:
+	readyToPlay = (grovepi.ultrasonicRead(redSens) < 200) or (grovepi.ultrasonicRead(blueSens) < 200)
+	if readyToPlay:
+		try:
+			for item in range(0,gameLength):
+				if random.randint(1, 2) == 1:
+					selectionLog[item] = 0
+				else: 
+					selectionLog[item] = 1
+			for num in range(0,gameLength):
+				for item in range(0, num):
+					if selectionLog[item] == 0:
+						grovepi.digitalWrite(red,1)
+						grovepi.digitalWrite(blue,0)
+						print "red picked"
+					else:
+						grovepi.digitalWrite(blue,1)
+						grovepi.digitalWrite(red,0)
+						print "blue picked"
+					time.sleep(1)
+					grovepi.digitalWrite(blue,0)
+					grovepi.digitalWrite(red,0)
+					time.sleep(1)
+				waiting = True
+				lost = False
+				outOfTime = False
+				for item in range(0, num):
+					initTime = time.time()
+					while(waiting and not lost and not outOfTime):
+						outOfTime = (time.time() - initTime) > 10
+						if (grovepi.ultrasonicRead(redSens)) < 20:
+							if (selectionLog[item] == 0):
+								print "Winner!"
+								waiting = False
+								grovepi.digitalWrite(red,1)
+								time.sleep(1)
+								grovepi.digitalWrite(red,0)
+							else:
+								print "Loser!"
+								waiting = False
+								lost = True
+								grovepi.digitalWrite(blue,1)
+								grovepi.digitalWrite(red,1)
+								time.sleep(1)
+								grovepi.digitalWrite(blue,0)
+								grovepi.digitalWrite(red,0)
+						if (grovepi.ultrasonicRead(blueSens)) < 20:
+							if (selectionLog[item] == 1):
+								print "Winner!"
+								waiting = False
+								grovepi.digitalWrite(blue,1)
+								time.sleep(1)
+								grovepi.digitalWrite(blue,0)
+							else:
+								print "Loser!"
+								waiting = False
+								lost = True
+								grovepi.digitalWrite(red,1)
+								grovepi.digitalWrite(blue,1)
+								time.sleep(1)
+								grovepi.digitalWrite(red,0)
+								grovepi.digitalWrite(blue,0)
+					waiting = True
+		except TypeError:
+				print(TypeError)
+		except IOError:
+				print(IOError)
