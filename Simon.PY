@@ -9,7 +9,6 @@ import fcntl
 import socket
 import struct
 from flask import Flask
-#192.168.0.102
 
 #Ports for sensors
 redSens = 6
@@ -133,7 +132,6 @@ while True:
 				for item in range(0, num):
 					initTime = time.time()
 					while(waiting and not lost and not outOfTime):
-						print lost
 						outOfTime = (time.time() - initTime) > 10
 
 						if (grovepi.ultrasonicRead(redSens)) < 20:
@@ -155,7 +153,7 @@ while True:
 								time.sleep(0.5)
 								grovepi.digitalWrite(blue,0)
 								grovepi.digitalWrite(red,0)
-								
+
 						if (grovepi.ultrasonicRead(blueSens)) < 20:
 							if (selectionLog[item] == 1):
 								print "Winner!"
