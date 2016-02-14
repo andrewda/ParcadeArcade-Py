@@ -163,7 +163,7 @@ def do_cycle ():
 	while sens_flag:
 		try:
 			value = grovepi.ultrasonicRead(followSens)
-			LCD.setText("Color Cycling Mode: " +  "Sensor = " + str(value))
+			lcd.setText("Color Cycling Mode: " +  "Sensor = " + str(value))
 			print( "Sensor = " + str(value))
 			if value<150:			# Read the sensor value.
 				cycle(fadenum)		# If we get a sensation of relative proximity, do a little dance.
@@ -183,7 +183,7 @@ def do_whiteflash ():
 	while sens_flag:
 		try:
 			value = grovepi.ultrasonicRead(followSens)
-			LCD.setText("White Flash Mode: " +  "Sensor = " + str(value))
+			lcd.setText("White Flash Mode: " +  "Sensor = " + str(value))
 			print( "Sensor = " + str(value))
 			if value>128:			# Read the sensor value.
 				init_state( colors['red'] , colors['green'] , colors['blue']  )
@@ -201,7 +201,7 @@ def do_multiply ():
 	while sens_flag:
 		try:
 			value = grovepi.ultrasonicRead(followSens)
-			LCD.setText("Multiply Mode: " +  "Sensor = " + str(value))
+			lcd.setText("Multiply Mode: " +  "Sensor = " + str(value))
 			print( "Sensor = " + str(value))
 			if value>128:			# Read the sensor value.
 				init_state( colors['red'] , colors['green'] , colors['blue']  )
@@ -219,7 +219,7 @@ def do_darken ():
 	while sens_flag:
 		try:
 			shade = grovepi.ultrasonicRead(followSens)
-			LCD.setText("Darken Mode: " +  "Sensor = " + str(value))
+			lcd.setText("Darken Mode: " +  "Sensor = " + str(value))
 			print( "Sensor = " + str(shade))
 			if shade>128:			# Read the sensor value.
 				init_state( colors['red'] , colors['green'] , colors['blue']  )
