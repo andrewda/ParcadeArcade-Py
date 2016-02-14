@@ -2,25 +2,43 @@ import time
 import grovepi
 import random
 import lcd
-#from enum import Enum
 
-#192.168.0.102
-#LightChoice = Enum('LightChoice', 'red blue')
+# ***** LIGHTFOLLOW *****
+#
+# This code establishes four various `filters` or `themes` for the LightFollow game, which
+# Runs continuously when: 
+# A game is not being played, 
+# Or a win or lose sequence is not active.
+# 
+# By Mark Scott Lavin
+# Version 0.1
+# 2/14/2016
+#
+# ************************
 
-followSens = 7
-lightShow = 2
-grovepi.pinMode(followSens,"INPUT")
-grovepi.pinMode(lightShow,"OUTPUT")
+# Global Variables
 
-fadenum = 0.01
-colors = { 'red' : 0 , 'green' : 32 , 'blue' : 64 }
+followSens = 7 											# The Ultrasonic Sensor goes on port 7  
+lightShow = 2											# The LCD light display goes on port 2
+grovepi.pinMode(followSens,"INPUT")						# Establish the ultrasonic sensor as the input
+grovepi.pinMode(lightShow,"OUTPUT")						# Establish the LCD as the output
+
+fadenum = 0.01											# Control the speed of transitions globally. Set to 0.01
+colors = { 'red' : 0 , 'green' : 32 , 'blue' : 64 }   	# Initialize a dictionary to control the LCD colors.
+light_lev = range(128) 									# Generate a list 0-128 to allow control of  LCD light level
+
+# ***** CORE FUNCTIONS *****
+
+# Initialization of the LCD
 
 def init_state( r , g , b ):
 	colors =  { 'red' : r , 'green' : g, 'blue' : b } 
 	lcd.setRGB(colors['red'],colors['green'],colors['blue']) #set the light to red initially
 	return colors
+	
+# Defining a Filter: A Light Cycle
 
-lev = range(128) #generate a list 0-128 to allow control of  LCD light level
+# First, create a `fade` filter that allows cycling through primary and secondary colors
 
 def fade(level,color,sleep_time):
 	if color=="red":
@@ -52,14 +70,18 @@ def fade(level,color,sleep_time):
 			lcd.setRGB(level[l],level[l],level[l])
 			time.sleep(sleep_time) #long enough to notice color change
 
+# Then, create a cycle function to cycle through fades for each of the colors
+
 def cycle(sleep_time):
-	fade(lev,"red",sleep_time)
-	fade(lev,"yellow",sleep_time)
-	fade(lev,"green",sleep_time)
-	fade(lev,"bluegreen",sleep_time)
-	fade(lev,"blue",sleep_time)
-	fade(lev,"purple",sleep_time)
-	fade(lev,"white",sleep_time)
+	fade(light_lev,"red",sleep_time)
+	fade(light_lev,"yellow",sleep_time)
+	fade(light_lev,"green",sleep_time)
+	fade(light_lev,"bluegreen",sleep_time)
+	fade(light_lev,"blue",sleep_time)
+	fade(light_lev,"purple",sleep_time)
+	fade(light_lev,"white",sleep_time)
+
+# Defining a Filter - Whiteflash
 	
 def whiteflash():
 	flash = (128 - grovepi.ultrasonicRead(followSens))
@@ -78,6 +100,8 @@ def whiteflash():
 		b = colors['blue']
 	
 	lcd.setRGB( r , g , b )
+
+# Defining a Filter - Color Multiplication
 	
 def multiply():
 	flash = (128 - grovepi.ultrasonicRead(followSens))
@@ -109,6 +133,8 @@ def multiply():
 		b = colors['blue']
 	
 	lcd.setRGB( r , g , b )
+
+# Defining a Filter - Darken
 	
 def darken():
 	shade = grovepi.ultrasonicRead(followSens)
@@ -127,12 +153,17 @@ def darken():
 		b = colors['blue']
 	
 	lcd.setRGB( r , g , b )
+	
+# Do whatever filter upon getting a sensation of proximity
 
-def filter_cycle ():			
+# Do the fading color cycle
+
+def do_cycle ():			
 	sens_flag = True
 	while sens_flag:
 		try:
 			value = grovepi.ultrasonicRead(followSens)
+			LCD.setText("Color Cycling Mode: " +  "Sensor = " + str(value))
 			print( "Sensor = " + str(value))
 			if value<150:			# Read the sensor value.
 				cycle(fadenum)		# If we get a sensation of relative proximity, do a little dance.
@@ -144,12 +175,15 @@ def filter_cycle ():
 			print(TypeError)
 		except IOError:
 			print(IOError)
+			
+# Do the whiteflashing
 
-def filter_whiteflash ():			
+def do_whiteflash ():			
 	sens_flag = True
 	while sens_flag:
 		try:
 			value = grovepi.ultrasonicRead(followSens)
+			LCD.setText("White Flash Mode: " +  "Sensor = " + str(value))
 			print( "Sensor = " + str(value))
 			if value>128:			# Read the sensor value.
 				init_state( colors['red'] , colors['green'] , colors['blue']  )
@@ -159,12 +193,15 @@ def filter_whiteflash ():
 			print(TypeError)
 		except IOError:
 			print(IOError)
+
+# Do the multiplier
 			
-def filter_multiply ():			
+def do_multiply ():			
 	sens_flag = True
 	while sens_flag:
 		try:
 			value = grovepi.ultrasonicRead(followSens)
+			LCD.setText("Multiply Mode: " +  "Sensor = " + str(value))
 			print( "Sensor = " + str(value))
 			if value>128:			# Read the sensor value.
 				init_state( colors['red'] , colors['green'] , colors['blue']  )
@@ -174,12 +211,15 @@ def filter_multiply ():
 			print(TypeError)
 		except IOError:
 			print(IOError)
+
+# Do the darken filter
 			
-def filter_darken ():			
+def do_darken ():			
 	sens_flag = True
 	while sens_flag:
 		try:
 			shade = grovepi.ultrasonicRead(followSens)
+			LCD.setText("Darken Mode: " +  "Sensor = " + str(value))
 			print( "Sensor = " + str(shade))
 			if shade>128:			# Read the sensor value.
 				init_state( colors['red'] , colors['green'] , colors['blue']  )
@@ -192,4 +232,4 @@ def filter_darken ():
 			
 
 init_state( 64 , 2, 1 )
-filter_cycle()
+do_cycle()
