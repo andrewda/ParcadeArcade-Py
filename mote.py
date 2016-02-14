@@ -9,6 +9,8 @@ Created on Sat Feb 13 19:41:47 2016
 # The capabilities of the device are provided to the Server.
 #The server will be able to trigger behaviors of Game pieces remotely.
 
+import ConfigParser
+
 DigitalIn = 1
 DigitalOut = 2
 AnalogIn = 3
@@ -46,6 +48,9 @@ class Mote:
     def addCapability( self, capability ):
         self.capabilities.append( capability )
     
+    def clearCapabilities( self ):
+        self.capabilities = []
+        
 #    def to_JSON(self):
 #        json_string = json.dumps([ob.__dict__ for ob in myMote.capabilities])
 #        return json.dumps(self, default=lambda o: o.__dict__, 
@@ -57,6 +62,9 @@ class Mote:
         #x["capabilities"] = clist
         return x
         
+    # these routines failed us.
+    # the goal would be to create a single JSON representation of the mote object
+    # this was not making it to the server intact
     def to_JSON(self):        
         myStr = '"name": "' + self.name +'", '
         myStr += '"description": "' + self.description +'", ' 
@@ -76,3 +84,49 @@ class Mote:
         mystring = (p1+json_string + "}").replace('\n', ' ').replace('\r', '').replace( '\t', '' )
         return mystring
             
+    def saveConfig( self ):
+        # lets create that config file...
+        cfgfile = open("config.ini",'w')
+        
+        # add the settings to the structure of the file, and lets write it out...
+        Config = ConfigParser.ConfigParser()
+        Config.add_section('mote')
+        Config.set('mote','name',self.name)
+        Config.set('mote','description', self.description)
+        
+        Config.add_section('capabilities')
+        Config.set('capabilities','numCapabilities',len(self.capabilities))
+        
+        # iterate through the capabilities and store 
+        i = 1
+        for ob in self.capabilities:
+            sec = 'capability'+str(i)
+            print "section: " + sec
+            Config.add_section(sec)
+            i = i + 1
+            Config.set(sec,'name',ob.name)
+            Config.set(sec,'port',ob.port)
+            Config.set(sec,'ioType',ob.ioType)
+        
+        Config.write(cfgfile)
+        cfgfile.close()           
+        
+        
+    def loadConfig( self ):
+        # load the config file if it exists
+        Config = ConfigParser.ConfigParser()
+        Config.read("config.ini")
+        
+        # get the mote's identity
+        self.name = Config.get( 'mote', 'name' )
+        self.description = Config.get( 'mote', 'description' )
+        
+        self.clearCapabilities()
+        numCapabilities = Config.getint( 'capabilities','numCapabilities' )
+        for i in range( 1, numCapabilities ):
+            capName = Config.get( 'capability'+str(i), 'name' )
+            port = Config.getint( 'capability'+str(i), 'port' )
+            ioType = Config.getint( 'capability'+str(i), 'ioType' )
+            
+            cap = Capability( capName, port, ioType )
+            self.addCapability( cap )

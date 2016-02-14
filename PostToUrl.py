@@ -2,8 +2,9 @@
 """
 Created on Fri Feb 12 23:26:00 2016
 
-@author: joe_b
+@author: South Eugene Robotics Team
 """
+# provides an example of a Game connecting to the Server
 
 import grovepi
 import requests
