@@ -21,7 +21,7 @@ from flask import Flask, request
 
 # create a mote object to track the device specific bit
 mote = mote.Mote( "Name", "Description", "10.0.0.1" )
-comfigure()
+myId = configure()
 
 # create the device specific I/O
 greenLed = 2
@@ -41,7 +41,7 @@ app.run(host = '0.0.0.0')
 def configure( self ):    
     self.mote.loadConfig()
 
-    url = 'http://192.168.0.101:1337/add_listener'
+    url = 'http://andrew.local:1337/add_listener'
     header = {'content-type': 'application/json'}
     foo = requests.post(url, params=self.mote.toDict(), headers=header)
     rslt = json.loads( foo.text)
@@ -54,7 +54,7 @@ def configure( self ):
     # send a test signal
     #grovepi.digitalWrite( greenLed, 0 )
     
-    addCapUrl = 'http://192.168.0.101:1337/add_capability'
+    addCapUrl = 'http://andrew.local:1337/add_capability'
     clist = [ requests.post(addCapUrl, params=ob.toDict(), headers=header) for ob in self.mote.capabilities ]
     
     print(self.mote.id)
@@ -63,6 +63,7 @@ def configure( self ):
     
     lcd.settext( self.mote.name )
 
+    return id
 
 
 @app.route("/set", methods=['POST'])

@@ -36,13 +36,13 @@ grovepi.digitalWrite( greenLed, 1 )
 
 lcd.setRGB( 128, 0, 0 ) # red
 
-myMote = mote.Mote( "Simon", "My new Simon", ip )
+myMote = mote.Mote( "Flasher", "Simple Flasher", ip )
 
 #myMote.addCapability( mote.Capability( "Button 1", 2, 1 ) )
 #myMote.addCapability( mote.Capability( "Button 2", 3, 1 ) )
 myMote.addCapability( mote.Capability( "Green LED", 2, 2 ) )
 
-url = 'http://192.168.0.101:1337/add_listener'
+url = 'http://andrew.local:1337/add_listener'
 header = {'content-type': 'application/json'}
 foo = requests.post(url, params=myMote.toDict(), headers=header)
 rslt = json.loads( foo.text)
@@ -55,7 +55,7 @@ for ob in myMote.capabilities:
 
 grovepi.digitalWrite( greenLed, 0 )
 
-addCapUrl = 'http://192.168.0.101:1337/add_capability'
+addCapUrl = 'http://andrew.local:1337/add_capability'
 clist = [ requests.post(addCapUrl, params=ob.toDict(), headers=header) for ob in myMote.capabilities ]
 
 print(myMote.id)
