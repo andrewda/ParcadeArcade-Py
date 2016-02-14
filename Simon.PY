@@ -11,15 +11,20 @@ import struct
 from flask import Flask
 #192.168.0.102
 
+#Ports for sensors
 redSens = 6
 blueSens = 5
+#Ports for lights
 red = 3
 blue = 4
+
 grovepi.pinMode(redSens,"INPUT")
 grovepi.pinMode(blueSens,"INPUT")
 grovepi.pinMode(red,"OUTPUT")
 grovepi.pinMode(blue,"OUTPUT")
+
 gameLength = 10
+#Keeps track of what the user has to remember/play back
 selectionLog = range(0,gameLength)
 readyToPlay = False
 
@@ -34,13 +39,12 @@ def get_ip_address(ifname):
         struct.pack('256s', ifname[:15])
     )[20:24])
 
-print get_ip_address('lo')
-print get_ip_address('eth0')
 
 ip = get_ip_address('eth0') + ":5000"
 
 myMote = mote.Mote("Simon", "Dani' Simon", ip)
 
+#Adds listener
 url = 'http://andrew.local:1337/add_listener'
 header = {'content-type': 'application/json'}
 foo = requests.post(url, params=myMote.toDict(), headers=header)
@@ -49,7 +53,6 @@ print rslt
 id = rslt["response"]["id"]
 
 myMote.id = id
-
 for ob in myMote.capabilities:
     ob.moteId = id
 
@@ -81,18 +84,21 @@ def respond():
     
     return "Success\n"
 
+#Adding capabilities
 requests.post("http://andrew.local:1337/add_capability/?moteId=" + id + "&name=led&ioType=" + str(2) + "&port=" + str(red))
 requests.post("http://andrew.local:1337/add_capability/?moteId=" + id + "&name=led&ioType=" + str(2) + "&port=" + str(blue))
 
-print "ready"
-
+#Main loop of game
 while True:
 	lcd.setText("Play Simon!");
 	lcd.setRGB(128,128,128)
+
 	readyToPlay = (grovepi.ultrasonicRead(redSens) < 200) or (grovepi.ultrasonicRead(blueSens) < 200)
 	if readyToPlay:
 		lcd.setText("Let's play!")
 		lcd.setRGB(255,0,255)
+
+		#Tells server game is started
 		requests.post("http://andrew.local:1337/user_interaction/?id=13371c825290295966131f43f818ecca")
 		lost = False
 		try:
@@ -129,6 +135,7 @@ while True:
 					while(waiting and not lost and not outOfTime):
 						print lost
 						outOfTime = (time.time() - initTime) > 10
+
 						if (grovepi.ultrasonicRead(redSens)) < 20:
 							if (selectionLog[item] == 0):
 								print "Winner!"
@@ -148,6 +155,7 @@ while True:
 								time.sleep(0.5)
 								grovepi.digitalWrite(blue,0)
 								grovepi.digitalWrite(red,0)
+								
 						if (grovepi.ultrasonicRead(blueSens)) < 20:
 							if (selectionLog[item] == 1):
 								print "Winner!"
