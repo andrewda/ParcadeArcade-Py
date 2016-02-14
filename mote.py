@@ -2,8 +2,12 @@
 """
 Created on Sat Feb 13 19:41:47 2016
 
-@author: joe_b
+@author: South Eugene Robotics Team
 """
+# encapsulates the concept of a Game Mote
+# each Raspberry Pi in the Game declares itself to the server.
+# The capabilities of the device are provided to the Server.
+#The server will be able to trigger behaviors of Game pieces remotely.
 
 DigitalIn = 1
 DigitalOut = 2
