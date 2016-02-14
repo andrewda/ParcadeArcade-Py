@@ -19,9 +19,12 @@ grovepi.pinMode(redSens,"INPUT")
 grovepi.pinMode(blueSens,"INPUT")
 grovepi.pinMode(red,"OUTPUT")
 grovepi.pinMode(blue,"OUTPUT")
-gameLength = 3
+gameLength = 10
 selectionLog = range(0,gameLength)
 readyToPlay = False
+
+lcd.setText("Play Simon!");
+lcd.setRGB(128,128,128)
 
 def get_ip_address(ifname):
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -38,7 +41,7 @@ ip = get_ip_address('eth0') + ":5000"
 
 myMote = mote.Mote("Simon", "Dani' Simon", ip)
 
-url = 'http://192.168.0.101:1337/add_listener'
+url = 'http://andrew.local:1337/add_listener'
 header = {'content-type': 'application/json'}
 foo = requests.post(url, params=myMote.toDict(), headers=header)
 rslt = json.loads( foo.text)
@@ -78,14 +81,18 @@ def respond():
     
     return "Success\n"
 
-#app.run(host = '0.0.0.0')
+requests.post("http://andrew.local:1337/add_capability/?moteId=" + id + "&name=led&ioType=" + str(2) + "&port=" + str(red))
+requests.post("http://andrew.local:1337/add_capability/?moteId=" + id + "&name=led&ioType=" + str(2) + "&port=" + str(blue))
 
-requests.post("http://andrew.local:1337/user_interaction/?moteId=" + id + "&name=led&ioType=" + str(2) + "&port=" + str(red))
-requests.post("http://andrew.local:1337/user_interaction/?moteId=" + id + "&name=led&ioType=" + str(2) + "&port=" + str(blue))
+print "ready"
 
 while True:
+	lcd.setText("Play Simon!");
+	lcd.setRGB(128,128,128)
 	readyToPlay = (grovepi.ultrasonicRead(redSens) < 200) or (grovepi.ultrasonicRead(blueSens) < 200)
 	if readyToPlay:
+		lcd.setText("Let's play!")
+		lcd.setRGB(255,0,255)
 		requests.post("http://andrew.local:1337/user_interaction/?id=13371c825290295966131f43f818ecca")
 		lost = False
 		try:
@@ -96,17 +103,19 @@ while True:
 				else: 
 					selectionLog[item] = 1
 
-			#plays lights
 			for num in range(0,gameLength):
+				#plays lights
 				for item in range(0, num):
 					if selectionLog[item] == 0:
 						grovepi.digitalWrite(red,1)
 						grovepi.digitalWrite(blue,0)
 						print "red picked"
+						requests.post('http://andrew.local:1337/push/?id=1&name=lighting&value=red')
 					else:
 						grovepi.digitalWrite(blue,1)
 						grovepi.digitalWrite(red,0)
 						print "blue picked"
+						requests.post('http://andrew.local:1337/push/?id=1&name=lighting&value=blue')
 					time.sleep(0.5)
 					grovepi.digitalWrite(blue,0)
 					grovepi.digitalWrite(red,0)
@@ -118,20 +127,22 @@ while True:
 				for item in range(0, num):
 					initTime = time.time()
 					while(waiting and not lost and not outOfTime):
-						
+						print lost
 						outOfTime = (time.time() - initTime) > 10
 						if (grovepi.ultrasonicRead(redSens)) < 20:
 							if (selectionLog[item] == 0):
 								print "Winner!"
 								waiting = False
+								requests.post('http://andrew.local:1337/push/?id=1&name=lighting&value=red')
 								grovepi.digitalWrite(red,1)
 								time.sleep(0.5)
 								grovepi.digitalWrite(red,0)
-								time.sleep(0.5)
+								time.sleep(1)
 							else:
 								print "Loser!"
 								waiting = False
 								lost = True
+								break
 								grovepi.digitalWrite(blue,1)
 								grovepi.digitalWrite(red,1)
 								time.sleep(0.5)
@@ -141,10 +152,11 @@ while True:
 							if (selectionLog[item] == 1):
 								print "Winner!"
 								waiting = False
+								requests.post('http://andrew.local:1337/push/?id=1&name=lighting&value=blue')
 								grovepi.digitalWrite(blue,1)
 								time.sleep(0.5)
 								grovepi.digitalWrite(blue,0)
-								time.sleep(0.5)
+								time.sleep(1)
 							else:
 								print "Loser!"
 								waiting = False
@@ -154,10 +166,14 @@ while True:
 								time.sleep(0.5)
 								grovepi.digitalWrite(red,0)
 								grovepi.digitalWrite(blue,0)
+								time.sleep(0.5)
 			#end of game wrap up
 			readyToPlay = False
 			if not lost:
+				lcd.setText("You won!")
+				lcd.setRGB(0,255,0)
 				requests.post("http://andrew.local:1337/points/?id=a541dddab6cb3ad680053f55559ad394&points=100")
+				requests.post('http://andrew.local:1337/push/?id=1&name=lighting&value=purple')
 				for item in range(0,8):
 					grovepi.digitalWrite(red,1)
 					grovepi.digitalWrite(blue,0)
@@ -166,7 +182,10 @@ while True:
 					grovepi.digitalWrite(blue,1)
 					time.sleep(0.1)
 			else:
-				requests.post("http://andrew.local:1337/points/?id=a541dddab6cb3ad680053f55559ad394&points=100")
+				requests.post("http://andrew.local:1337/points/?id=a541dddab6cb3ad680053f55559ad394&points=-10")
+				lcd.setText("Try again next time")
+				lcd.setRGB(128,128,128)
+				time.sleep(3)
 		except TypeError:
 				print(TypeError)
 		except IOError:
