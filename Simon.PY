@@ -17,44 +17,49 @@ grovepi.pinMode(red,"OUTPUT")
 grovepi.pinMode(blue,"OUTPUT")
 comTurn = True
 seleccion = 0
-gameLength = 9
-seleccionLog = range(1,gameLength)
-for num in range(1,gameLength):
-	try:
-		if comTurn:
-			if random.randint(1, 2) == 1:
-				grovepi.digitalWrite(red,1)
-				grovepi.digitalWrite(blue,0)
-				seleccion = 8 #LightChoice.red
-				print "red picked"
-			else: 
-				grovepi.digitalWrite(blue,1)
-				grovepi.digitalWrite(red,0)
-				seleccion = 7#LightChoice.blue
-				print "blue picked"
-			seleccionLog[num] = seleccion
-			time.sleep(2)
+gameLength = 3
+seleccionLog = range(0,gameLength)
+try:
+	for item in range(0,3):
+		if random.randint(1, 2) == 1:
+			grovepi.digitalWrite(red,1)
 			grovepi.digitalWrite(blue,0)
+			seleccion = 8 #LightChoice.red
+			print "red picked"
+		else: 
+			grovepi.digitalWrite(blue,1)
 			grovepi.digitalWrite(red,0)
-			comTurn = False
-		for item in range(1,num):
-			waiting = True
-			while(waiting):
-				if (grovepi.ultrasonicRead(redSens)) < 20:
-					if (seleccionLog[item] == 8):
-						print "Winner!"
-						waiting = False
-					else:
-						print "Loser!"
-						waiting = False
-				if (grovepi.digitalRead(blueSens)) ==1:
-					if (seleccionLog[item] == 7):
-						print "Winner!"
-						waiting = False
-					else:
-						print "Loser!"
-						waiting = False
-	except TypeError:
-		print(TypeError)
-	except IOError:
-			print(IOError)
+			seleccion = 7#LightChoice.blue
+			print "blue picked"
+		seleccionLog[item] = seleccion
+		time.sleep(1)
+		grovepi.digitalWrite(blue,0)
+		grovepi.digitalWrite(red,0)
+		time.sleep(1)
+	waiting = True
+	lost = False
+	for item in range(0, 3):
+		initTime = time.time()
+		while(waiting and not lost):
+			print lost
+			if (grovepi.ultrasonicRead(redSens)) < 20:
+				if (seleccionLog[item] == 8):
+					print "Winner!"
+					waiting = False
+				else:
+					print "Loser!"
+					waiting = False
+					lost = True
+			if (grovepi.digitalRead(blueSens)) ==1:
+				if (seleccionLog[item] == 7):
+					print "Winner!"
+					waiting = False
+				else:
+					print "Loser!"
+					waiting = False
+					lost = True
+		waiting = True
+except TypeError:
+	print(TypeError)
+except IOError:
+		print(IOError)
